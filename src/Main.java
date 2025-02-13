@@ -3,6 +3,8 @@
 // Contact at benjamin.rubio@malad.us
 
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Scanner;
 import java.util.StringTokenizer;
 
@@ -43,14 +45,13 @@ public class Main {
         }
     }
 
-    // creates a method to compare the user input index with a specific token index
-    public static boolean compareUserData(int userIndex, int tokenIndex, Runnable c) {
-        // check if the two indexes are equal
-        if (userIndex == tokenIndex) {
-            c.run(); // runs the callback lambda function
-            return true; // returns that the check succeed
-        } else {
-            return false; // returns that the check failed
+    // creates a method to easily create a file writer object
+    public static FileWriter createNewFileWriter(File file) {
+        try {
+            return new FileWriter(file);
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
+            return null;
         }
     }
 
@@ -61,7 +62,7 @@ public class Main {
         // try-catch to catch an exception
         try {
             fileReader = new Scanner(fileToRead); // initializes the fileReader variable
-        }catch (Exception e){
+        } catch (Exception e) {
             System.out.println(e.getMessage()); // tells the user what went wrong
         }
 
@@ -70,56 +71,93 @@ public class Main {
 
         // a loop to read line while the file still has more
         while (fileReader.hasNext()) {
-            System.out.println("\n"); // clears a line
+            System.out.println("\n"); // creates a new line
             String[] lineTokens = getCSVTokens(fileReader.nextLine()); // gets the csv tokens for the current line
 
             // goes through all the tokens for the current line
             for (String str : lineTokens) {
                 // checks if the current token can be converted into an int
                 if (getNumber(str) != -1) {
-                    System.out.println("Frequency: " + getNumber(str)); // tells the user the frequency as a number
+                    System.out.println("\t\t\tFrequency: " + getNumber(str)); // tells the user the frequency as a number
                     allFrequenciesAdded += getNumber(str); // adds to the allFrequenciesAdded variable
                 // checks if the current token can be converted into a float
                 } else if (getFloat(str) != -11.1f) {
-                    System.out.println("Percentage: " + getFloat(str));// tells the user the percentage as a float
+                    System.out.println("\t\t\tPercentage: " + getFloat(str));// tells the user the percentage as a float
                     allPercentagesAdded += getFloat(str); // adds the percentage to the total of percentages
                 // if the current token is not an int or a float, print it out as a string
                 } else {
-                    System.out.println(str); // prints out the current token
+                    System.out.println("\t\t"+str); // prints out the current token
                 }
             }
         }
 
-        System.out.println("\nTotal of percentages: "+allPercentagesAdded); // tells the user all the percentages added
-        System.out.println("All frequencies added: "+allFrequenciesAdded); // tells the user all the frequencies added
-        System.out.println("The average of all frequencies: "+(allFrequenciesAdded/2)+"\n"); // tells the user all the frequencies averaged
+        System.out.println("\n\tTotal of percentages: "+allPercentagesAdded+"%"); // tells the user all the percentages added
+        System.out.println("\tAll frequencies added: "+allFrequenciesAdded); // tells the user all the frequencies added
+        System.out.println("\tThe average of all frequencies: "+(allFrequenciesAdded/2)+"\n"); // tells the user all the frequencies averaged
 
-        // user input
+        // user data
 
-        System.out.println("\nEnter data (example: John Jimmy, 123 Apple Ln, 12345): "); // tells the user to enter data
+        int maxUsers = 5; // creates a variable to store the max amount of users
+        int currentUser = 1; // creates a variable to store the current user
+        int dataLots = 5; // creates a variable for the amount of each users max lot size of data
+        int userDataBufferSize = (dataLots*maxUsers)+20; // creates a variable to store the max amount of data to be stored in the user data string
 
-        Scanner inputScanner = new Scanner(System.in); // creates a new scanner object for user input
+        String[] userData = new String[userDataBufferSize]; // creates a string to store each user's data
 
-        int nameTokenIndex = 0; // creates a variable to identify the name token in the users input
-        int addressTokenIndex = 1; // creates a variable to identify the address token in the users input
-        int zipCodeTokenIndex = 2; // creates a variable to identify the zipcode token in the users input
+        File userDataFile = new File("user_data.txt"); // creates the file we're going to use to store user data
+        FileWriter userDataWriter = createNewFileWriter(userDataFile);
 
-        StringTokenizer userInputTokenizer = new StringTokenizer(inputScanner.nextLine(), ","); // creates a string tokenizer for the users input
-        String[] tokens = new String[userInputTokenizer.countTokens()]; // creates an array of strings that will contain all the tokens from the users input
+        Scanner userInputScanner = new Scanner(System.in); // creates a new scanner object for user input
 
-        // loops for the amount of tokens able to be stored in the tokens string array
-        for (int i = 0; i < tokens.length; i++) {
-            tokens[i] = userInputTokenizer.nextToken(); // sets the current token to the string tokenizers current token
-            compareUserData(i, nameTokenIndex, () -> {System.out.println("Name: "+tokens[nameTokenIndex]);}); // checks if the current token index is the name token index, and if so repeats the users name input
-            compareUserData(i, addressTokenIndex, () -> {System.out.println("Address: "+tokens[addressTokenIndex]);}); // checks if the current token index is the address token index, and if so repeats the users address input
-            compareUserData(i, zipCodeTokenIndex, () -> {System.out.println("Zipcode: "+tokens[zipCodeTokenIndex]);}); // checks if the current token index is the zipcode token index, and if so repeats the users zipcode input
+        // keeps running while not all user data has been stored
+        while (currentUser <= maxUsers) {
+            System.out.printf("\nEnter data for user %d (example: John Jimmy, 123 Apple Ln, 12345): ", currentUser); // tells the user to enter data
+
+            StringTokenizer userInputTokenizer = new StringTokenizer(userInputScanner.nextLine(), ",;"); // creates a string tokenizer for the users input
+            String[] userDataTokens = new String[userInputTokenizer.countTokens()]; // creates an array of strings that will contain all the tokens from the users input
+            String userDataString = "";
+
+            for (int tokenIndex = 0; tokenIndex < userDataTokens.length; tokenIndex++) {
+                String currentDataValue = ""; // stores the current data type the user entered
+
+                userDataTokens[tokenIndex] = userInputTokenizer.nextToken(); // sets the current token in the tokens array to the current next string tokenizer token
+
+                // checks if the current number matches the index for the data value
+                if (tokenIndex == 0) { currentDataValue = "Name"; /* sets the current data value */ System.out.printf("\tName entered: %s", userDataTokens[tokenIndex]); /* tells the user what name the user input */ }
+                else if (tokenIndex == 1) { currentDataValue = "Address"; /* sets the current data value */ System.out.printf("\t\tAddress entered: %s", userDataTokens[tokenIndex]); /* tells the user what address the user input */ }
+                else if (tokenIndex == 2) { currentDataValue = "Zipcode"; /* sets the current data value */ System.out.printf("\t\tZipcode entered: %s", userDataTokens[tokenIndex]); /* tells the user what zipcode the user input */ }
+                else if (tokenIndex == 3) { currentDataValue = "Phone number"; /* sets the current data value */ System.out.printf("\t\tPhone number entered: %s", userDataTokens[tokenIndex]); /* tells the user what phone number the user input */ }
+
+                userDataString = userDataString.concat("\n\t" + currentDataValue + ": " + userDataTokens[tokenIndex]); // adds the current user token formatted to the user data string
+            }
+
+            userData[currentUser] = String.format("\nUser %d data:", currentUser) + userDataString;
+
+            try {
+                if (userDataWriter != null) {
+                    userDataWriter.write("\n" + userData[currentUser]);
+                }
+            } catch (IOException e) {
+                System.out.println(e.getMessage());
+            }
+
+            currentUser += 1;
+        }
+
+        // try-catch to get exceptions
+        try {
+            if (userDataWriter != null) {
+                userDataWriter.close();
+            }
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
         }
 
         // try-catch to get exceptions
         try {
             fileReader.close(); // closes the file reader scanner
-            inputScanner.close(); // closes the user input scanner
-        }catch (Exception e){
+            userInputScanner.close(); // closes the current user input scanner
+        } catch (Exception e) {
             System.out.println(e.getMessage()); // tells the user what went wrong
         }
     }
