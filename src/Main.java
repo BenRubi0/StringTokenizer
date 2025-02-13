@@ -111,11 +111,11 @@ public class Main {
 
         // keeps running while not all user data has been stored
         while (currentUser <= maxUsers) {
-            System.out.printf("\nEnter data for user %d (example: John Jimmy, 123 Apple Ln, 12345): ", currentUser); // tells the user to enter data
+            System.out.printf("\nEnter data for user %d (name, address, zipcode, phone number, birthday): ", currentUser); // tells the user to enter data
 
             StringTokenizer userInputTokenizer = new StringTokenizer(userInputScanner.nextLine(), ",;"); // creates a string tokenizer for the users input
             String[] userDataTokens = new String[userInputTokenizer.countTokens()]; // creates an array of strings that will contain all the tokens from the users input
-            String userDataString = "";
+            String userDataString = ""; // creates a string to store the user data
 
             for (int tokenIndex = 0; tokenIndex < userDataTokens.length; tokenIndex++) {
                 String currentDataValue = ""; // stores the current data type the user entered
@@ -127,30 +127,34 @@ public class Main {
                 else if (tokenIndex == 1) { currentDataValue = "Address"; /* sets the current data value */ System.out.printf("\t\tAddress entered: %s", userDataTokens[tokenIndex]); /* tells the user what address the user input */ }
                 else if (tokenIndex == 2) { currentDataValue = "Zipcode"; /* sets the current data value */ System.out.printf("\t\tZipcode entered: %s", userDataTokens[tokenIndex]); /* tells the user what zipcode the user input */ }
                 else if (tokenIndex == 3) { currentDataValue = "Phone number"; /* sets the current data value */ System.out.printf("\t\tPhone number entered: %s", userDataTokens[tokenIndex]); /* tells the user what phone number the user input */ }
+                else if (tokenIndex == 4) { currentDataValue = "Birthday"; /* sets the current data value */ System.out.printf("\t\tBirthday entered: %s", userDataTokens[tokenIndex]); /* tells the user what birthday the user input */ }
 
                 userDataString = userDataString.concat("\n\t" + currentDataValue + ": " + userDataTokens[tokenIndex]); // adds the current user token formatted to the user data string
             }
 
-            userData[currentUser] = String.format("\nUser %d data:", currentUser) + userDataString;
+            userData[currentUser] = String.format("\nUser %d data:", currentUser) + userDataString; // creates a formatted version of the userDataString and adds it to an array
 
+            // try-catch to get exceptions
             try {
+                // check if the userDataWriter is not null
                 if (userDataWriter != null) {
-                    userDataWriter.write("\n" + userData[currentUser]);
+                    userDataWriter.write("\n" + userData[currentUser]); // write the user data to the file
                 }
             } catch (IOException e) {
-                System.out.println(e.getMessage());
+                System.out.println(e.getMessage()); // tells the user what went wrong
             }
 
-            currentUser += 1;
+            currentUser += 1; // adds one to the current user
         }
 
         // try-catch to get exceptions
         try {
+            // check if the userDataWriter is not null
             if (userDataWriter != null) {
-                userDataWriter.close();
+                userDataWriter.close(); // close the file writer
             }
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            System.out.println(e.getMessage()); // tells the user what went wrong
         }
 
         // try-catch to get exceptions
